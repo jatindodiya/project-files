@@ -3,18 +3,58 @@
 import pygame, sys, random, math
 from collections import deque
 from tkinter import messagebox, Tk
+import os
 
-size = (width, height) = 640, 480
+# -----------------------------------color define-----------------------------------------
+red = (178, 34, 34)
+orange = (255, 110, 0)
+lightblue = (30, 144, 255)
+blue = (25, 25, 112)
+pink = (255, 105, 180)
+black = (0, 0, 0)
+aqua = (32, 178, 170)
+white = (220, 220, 220)
+
+# --------------------------------------------------------------------------------------------
+# number between 2 - 200
+sizeofarr = 50
+showgrid = 1
+if sizeofarr >= 150:
+    showgrid = 0  # only 1 or 0
+# --------------------------------------------------------------------------------------------
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (30, 30)
+root = Tk()
+root.title("Start Window")
+# root.iconbitmap('pyc.ico')
+screen_width = root.winfo_screenwidth() - 50  # screen window width
+screen_height = root.winfo_screenheight() - 100  # screen window height
+
+screen_height = screen_height - screen_height % sizeofarr
+sizeof = screen_height // sizeofarr
+screen_width = screen_width - screen_width % sizeof
+
+# -----------------------------------------------------------------------------------------
+width = screen_width
+height = screen_height
+
+size = (width, height + 30)
+
+pygame.init()
+win = pygame.display.set_mode(size)
+clock = pygame.time.Clock()
+
+rows = sizeofarr
+cols = screen_width // sizeof
+print(rows, cols)
+
+# ------------------------------------------------------------------------------------
+
 pygame.init()
 
 win = pygame.display.set_mode(size)
 pygame.display.set_caption('Breadth First Search')
 clock = pygame.time.Clock()
 
-cols, rows = 64, 48
-
-w = width//cols
-h = height//rows
 
 grid = []
 queue, visited = deque(), []
@@ -34,7 +74,7 @@ class Spot:
     def show(self, win, col):
         if self.wall == True:
             col = (0, 0, 0)
-        pygame.draw.rect(win, col, (self.x*w, self.y*h, w-1, h-1))
+        pygame.draw.rect(win, col, (self.x*sizeof, self.y*sizeof, sizeof-1, sizeof-1))
     
     def add_neighbors(self, grid):
         if self.x < cols - 1:
@@ -57,14 +97,14 @@ class Spot:
 
 
 def clickWall(pos, state):
-    i = pos[0] // w
-    j = pos[1] // h
+    i = pos[0] // sizeof
+    j = pos[1] // sizeof
     grid[i][j].wall = state
 
 def place(pos):
-    i = pos[0] // w
-    j = pos[1] // h
-    return w, h
+    i = pos[0] // sizeof
+    j = pos[1] // sizeofarr
+    return i,j
 
 for i in range(cols):
     arr = []
@@ -77,8 +117,8 @@ for i in range(cols):
         grid[i][j].add_neighbors(grid)
 
     
-start = grid[cols//2][rows//2]
-end = grid[cols-1][rows - cols//2]
+start = grid[2][2]
+end = grid[20][10]
 start.wall = False
 end.wall = False
 
@@ -139,15 +179,17 @@ def main():
         for i in range(cols):
             for j in range(rows):
                 spot = grid[i][j]
-                spot.show(win, (255, 255, 255))
+                spot.show(win, white)
                 if spot in path:
-                    spot.show(win, (25, 120, 250))
+                    spot.show(win, blue)
                 elif spot.visited:
-                    spot.show(win, (255, 0, 0))
+                    spot.show(win, red)
                 if spot in queue:
-                    spot.show(win, (0, 255, 0))
+                    spot.show(win, lightblue)
+                if spot == start:
+                    spot.show(win, orange)
                 if spot == end:
-                    spot.show(win, (0, 120, 255))
+                    spot.show(win, pink)
                 
                 
         pygame.display.flip()
