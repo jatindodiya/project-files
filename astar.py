@@ -239,7 +239,7 @@ def main():
                 elif spot in closeSet:
                     spot.show(win, red)
                 elif spot in openSet:
-                    spot.show(win, red)
+                    spot.show(win, lightblue)
 
                 if spot == start:
                     spot.show(win, orange)
