@@ -1,6 +1,7 @@
 import pygame, sys, random, math
-from tkinter import messagebox, Tk
+from tkinter import Tk
 import os
+import time
 
 # -----------------------------------color define-----------------------------------------
 red = (178, 34, 34)
@@ -11,10 +12,11 @@ pink = (255, 105, 180)
 black = (0, 0, 0)
 aqua = (32, 178, 170)
 white = (220, 220, 220)
+green = (0,255,0)
 
 # --------------------------------------------------------------------------------------------
 # number between 2 - 200
-sizeofarr = 50
+sizeofarr = 20
 showgrid = 1
 if sizeofarr >= 150:
     showgrid = 0  # only 1 or 0
@@ -22,7 +24,7 @@ if sizeofarr >= 150:
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (30, 30)
 root = Tk()
 root.title("Start Window")
-# root.iconbitmap('pyc.ico')
+
 screen_width = root.winfo_screenwidth() - 50  # screen window width
 screen_height = root.winfo_screenheight() - 100  # screen window height
 
@@ -31,18 +33,19 @@ sizeof = screen_height // sizeofarr
 screen_width = screen_width - screen_width % sizeof
 
 # -----------------------------------------------------------------------------------------
-width = screen_width
 height = screen_height
+width = screen_width
+
 
 size = (width, height + 30)
 
 pygame.init()
+pygame.display.set_caption("A* Path Finding")
 win = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 
 rows = sizeofarr
 cols = screen_width // sizeof
-print(rows, cols)
 
 # ------------------------------------------------------------------------------------
 
@@ -52,7 +55,7 @@ path = []
 
 w = width // cols
 h = height // rows
-print(w, h)
+
 
 
 class Spot:
@@ -62,11 +65,11 @@ class Spot:
         self.neighbors = []
         self.prev = None
         self.wall = False
-        # if random.randint(0, 100) < 20:
+        # if random.randint(0, 100) < 15:
         #     self.wall = True
 
     def show(self, win, col):
-        if self.wall == True:
+        if self.wall:
             col = (0, 0, 0)
         pygame.draw.rect(win, col, (self.x * w, self.y * h, w - 1, h - 1))
 
@@ -94,6 +97,7 @@ def clickWall(pos, state):
     i = pos[0] // sizeof
     j = pos[1] // sizeof
     grid[i][j].wall = state
+    # print(grid[i][j].wall)
 
 
 def place(pos):
@@ -108,8 +112,8 @@ def heuristics(a, b):
 
 def displayMessage(message):  # message box
     fonts = pygame.font.SysFont('comicsans', 40)
-    pygame.draw.rect(win, pink, (0, screen_height, screen_width, 30))
-    win.blit(fonts.render(message, True, blue), (20, screen_height + 3))
+    pygame.draw.rect(win, black, (0, screen_height, screen_width, 30))
+    win.blit(fonts.render(message, True, white), (20, screen_height + 3))
     pygame.display.update()
 
 
@@ -123,11 +127,6 @@ for i in range(cols):
     for j in range(rows):
         grid[i][j].add_neighbors(grid)
 
-start = grid[2][2]
-end = grid[20][10]
-
-openSet.append(start)
-
 
 def close():
     pygame.quit()
@@ -135,25 +134,47 @@ def close():
 
 
 def main():
+    start_time = 0
     flag = False
-    noflag = True
     startflag = False
-    displayMessage("astar algorithm")
-    while True:
+    start = None
+    end = None
+    run = True
+
+    message = "Choose Start, End points and Press SPACE BAR to Start"
+
+    while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 close()
-            if event.type == pygame.MOUSEBUTTONUP:
-                if pygame.mouse.get_pressed(3)[0]:
-                    clickWall(pygame.mouse.get_pos(), True)
-                if pygame.mouse.get_pressed(3)[2]:
-                    clickWall(pygame.mouse.get_pos(), False)
             if event.type == pygame.MOUSEMOTION:
-                if pygame.mouse.get_pressed()[0]:
-                    clickWall(pygame.mouse.get_pos(), True)
+                if pygame.mouse.get_pressed(3)[0]:
+                    i, j = pygame.mouse.get_pos()
+                    spot = grid[i // sizeof][j // sizeof]
+                    if start not in openSet:
+                        start = spot
+                        openSet.append(start)
+
+                    elif end is None and spot != start:
+                        end = spot
+
+                    elif spot != end and spot != start:
+                        clickWall(pygame.mouse.get_pos(), True)
+
+                elif pygame.mouse.get_pressed(3)[2]:
+                    i, j = pygame.mouse.get_pos()
+                    spot = grid[i // sizeof][j // sizeof]
+                    if spot == start:
+                        openSet.remove(start)
+                        start = None
+                    elif spot == end:
+                        end = None
+                    clickWall(pygame.mouse.get_pos(), False)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     startflag = True
+                    start_time = time.time()
+                    message = "start = {},{} , End = {},{}".format(start.x, start.y, end.x, end.y)
 
         if startflag:
             if len(openSet) > 0:
@@ -171,9 +192,13 @@ def main():
                         temp = temp.prev
                     if not flag:
                         flag = True
-                        print("Done")
-                    elif flag:
-                        continue
+
+                        end_time = time.time()
+                        sec = end_time - start_time
+                        message = "start = {},{} , End = {},{} || Time = {:.2f}s,  Path = {},  Discovered = {}".format(start.x, start.y, end.x, end.y, sec , len(path), len(openSet)+len(closeSet))
+
+                    # elif flag:
+                    #     continue
 
                 if flag == False:
                     openSet.remove(current)
@@ -200,10 +225,9 @@ def main():
                             neighbor.prev = current
 
             else:
-                if noflag:
-                    Tk().wm_withdraw()
-                    messagebox.showinfo("No Solution", "There was no solution")
-                    noflag = False
+                message = "No Solution"
+                # run = False
+
 
         win.fill((0, 20, 20))
         for i in range(cols):
@@ -211,20 +235,28 @@ def main():
                 spot = grid[i][j]
                 spot.show(win, white)
                 if flag and spot in path:
-                    spot.show(win, blue)
+                    spot.show(win, green)
                 elif spot in closeSet:
                     spot.show(win, red)
                 elif spot in openSet:
-                    spot.show(win, lightblue)
-                try:
-                    if spot == start:
-                        spot.show(win, orange)
-                    if spot == end:
-                        spot.show(win, pink)
-                except Exception:
-                    pass
+                    spot.show(win, red)
 
-        pygame.display.flip()
+                if spot == start:
+                    spot.show(win, orange)
+                if spot == end:
+                    spot.show(win, pink)
+
+        displayMessage(message)
+        pygame.display.update()
 
 
 main()
+#--------------------Time Pass ____________
+# while True:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             close()
+#         if event.type == pygame.KEYDOWN:
+#             # if event.key == pygame.K_SPACE:
+#                 run = True
+#                 main()
