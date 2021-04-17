@@ -18,7 +18,7 @@ green = (0,255,0)
 
 # --------------------------------------------------------------------------------------------
 # number between 2 - 200
-sizeofarr = 30
+sizeofarr = 20
 showgrid = 1
 if sizeofarr >= 150:
     showgrid = 0  # only 1 or 0
