@@ -17,7 +17,7 @@ green = (0, 255, 0)
 
 # --------------------------------------------------------------------------------------------
 # number between 2 - 200
-sizeofarr = 30
+sizeofarr = 20
 showgrid = 1
 if sizeofarr >= 150:
     showgrid = 0  # only 1 or 0
@@ -40,7 +40,7 @@ height = screen_height
 size = (width, height + 30)
 
 pygame.init()
-pygame.display.set_caption('Breadth First Search')
+pygame.display.set_caption('Dijkstra Algorithm')
 win = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 
